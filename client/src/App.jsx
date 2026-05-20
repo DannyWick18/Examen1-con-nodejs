@@ -1,8 +1,10 @@
-import Home from "./pages/Home";
+//import Home from "./pages/Home";
+import Board from "./components/gameplay";
 
 function App() {
 
-  return <Home />;
+  //return <Home />;
+  return <Board />;
 
 }
 
