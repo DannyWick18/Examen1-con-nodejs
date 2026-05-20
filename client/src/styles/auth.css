@@ -1,0 +1,182 @@
+:root {
+    color-scheme: dark;
+}
+
+body {
+    background: radial-gradient(circle at top, rgba(115, 74, 255, 0.2), transparent 40%),
+      linear-gradient(180deg, #0b0d14 0%, #10131d 100%);
+    min-height: 100vh;
+    color: #f5f5f5;
+    font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+.page-container {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+}
+
+.auth-form {
+    width: min(460px, 100%);
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    padding: 36px;
+    border-radius: 28px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: rgba(14, 16, 28, 0.92);
+    box-shadow: 0 30px 80px rgba(0, 0, 0, 0.35);
+}
+
+.auth-loading {
+    justify-content: center;
+    align-items: center;
+    min-height: 220px;
+}
+
+.auth-form h2 {
+    margin: 0;
+    text-align: center;
+    font-size: clamp(2rem, 2.4vw, 2.4rem);
+    color: #fff;
+}
+
+.auth-input {
+    width: 100%;
+    min-height: 52px;
+    border-radius: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    background: rgba(255, 255, 255, 0.05);
+    color: #f7f7ff;
+    padding: 0 18px;
+    font-size: 1rem;
+    outline: none;
+}
+
+.auth-input:focus {
+    border-color: rgba(115, 74, 255, 0.8);
+    box-shadow: 0 0 0 4px rgba(115, 74, 255, 0.12);
+}
+
+.auth-input::placeholder {
+    color: rgba(255, 255, 255, 0.55);
+}
+
+.auth-button,
+.navbar button {
+    cursor: pointer;
+    border: none;
+    border-radius: 16px;
+    padding: 14px 20px;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #fff;
+    background: linear-gradient(135deg, #7c3aed, #5b21b6);
+    transition: transform 0.2s ease, filter 0.2s ease, box-shadow 0.2s ease;
+}
+
+.auth-button:hover,
+.navbar button:hover {
+    transform: translateY(-1px);
+    filter: brightness(1.05);
+    box-shadow: 0 18px 40px rgba(124, 58, 237, 0.25);
+}
+
+.navbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 24px 32px;
+    background: rgba(6, 7, 15, 0.88);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.navbar h2 {
+    margin: 0;
+    font-size: 1.3rem;
+    letter-spacing: 0.02em;
+}
+
+.navbar div {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.navbar span {
+    color: rgba(255, 255, 255, 0.86);
+}
+
+.home-container {
+    min-height: 100vh;
+}
+
+.home-content {
+    max-width: 1120px;
+    margin: 0 auto;
+    padding: 32px;
+}
+
+.home-content h1 {
+    margin: 0 0 12px;
+    font-size: clamp(2.5rem, 4vw, 4rem);
+    letter-spacing: -0.04em;
+}
+
+.home-content p {
+    margin: 0 0 24px;
+    color: rgba(255, 255, 255, 0.82);
+    font-size: 1.05rem;
+}
+
+.room-container,
+.message-controls {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.room-container {
+    margin-top: 24px;
+}
+
+.game-container {
+    margin-top: 24px;
+}
+
+.message-box {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    padding: 22px;
+    border-radius: 22px;
+    height: 320px;
+    overflow-y: auto;
+    margin-bottom: 22px;
+}
+
+.message-box p {
+    margin: 0 0 12px;
+    line-height: 1.7;
+}
+
+.message-controls input {
+    flex: 1;
+}
+
+@media (max-width: 720px) {
+    .home-content {
+        padding: 20px;
+    }
+
+    .room-container,
+    .message-controls {
+        flex-direction: column;
+        align-items: stretch;
+    }
+}
