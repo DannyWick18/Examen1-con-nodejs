@@ -1,0 +1,166 @@
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Crimson+Pro:ital,wght@0,300;0,400;1,300&display=swap');
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+.login-bg {
+  min-height: 100vh;
+  background-color: #0f0f0f;
+  background-image: repeating-conic-gradient(#1a1a1a 0% 25%, #111 0% 50%);
+  background-size: 48px 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+}
+
+.login-card {
+  background: #161616;
+  border: 1px solid #2e2e2e;
+  border-radius: 16px;
+  padding: 2.5rem 2.25rem 2rem;
+  width: 100%;
+  max-width: 400px;
+}
+
+/* Header */
+.login-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 1.5rem;
+}
+
+.login-crown {
+  font-size: 36px;
+  line-height: 1;
+}
+
+.login-title {
+  font-family: 'Cinzel', serif;
+  font-size: 22px;
+  font-weight: 700;
+  color: #e8e0c8;
+  letter-spacing: 0.05em;
+}
+
+.login-tagline {
+  font-family: 'Crimson Pro', serif;
+  font-size: 13px;
+  font-weight: 300;
+  font-style: italic;
+  color: #555;
+  margin-top: 2px;
+}
+
+.login-divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #2e2e2e, transparent);
+  margin-bottom: 1.5rem;
+}
+
+/* Tabs */
+.login-tabs {
+  display: flex;
+  gap: 0;
+  margin-bottom: 1.75rem;
+  border: 1px solid #2e2e2e;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.login-tab {
+  flex: 1;
+  background: transparent;
+  border: none;
+  padding: 9px 0;
+  font-family: 'Cinzel', serif;
+  font-size: 11px;
+  font-weight: 400;
+  letter-spacing: 0.08em;
+  color: #444;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+
+.login-tab.active {
+  background: #e8e0c8;
+  color: #0f0f0f;
+}
+
+/* Fields */
+.login-field {
+  margin-bottom: 1.25rem;
+}
+
+.login-label {
+  display: block;
+  font-family: 'Cinzel', serif;
+  font-size: 10px;
+  font-weight: 400;
+  letter-spacing: 0.14em;
+  color: #555;
+  margin-bottom: 7px;
+}
+
+.login-input {
+  width: 100%;
+  background: #0f0f0f;
+  border: 1px solid #2e2e2e;
+  border-radius: 8px;
+  padding: 10px 14px;
+  color: #e8e0c8;
+  font-family: 'Crimson Pro', serif;
+  font-size: 15px;
+  font-weight: 300;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.login-input::placeholder { color: #333; }
+.login-input:focus { border-color: #555; }
+
+/* Error */
+.login-error {
+  font-family: 'Crimson Pro', serif;
+  font-size: 13px;
+  color: #c0392b;
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+/* Button */
+.login-btn {
+  width: 100%;
+  background: #e8e0c8;
+  color: #0f0f0f;
+  border: none;
+  border-radius: 8px;
+  padding: 11px 0;
+  font-family: 'Cinzel', serif;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  cursor: pointer;
+  transition: opacity 0.15s, transform 0.1s;
+  margin-top: 0.25rem;
+}
+
+.login-btn:hover { opacity: 0.85; }
+.login-btn:active { transform: scale(0.98); }
+
+/* Decorative pieces */
+.login-pieces {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 1.75rem;
+}
+
+.login-piece {
+  font-size: 18px;
+  color: #2a2a2a;
+  cursor: default;
+  transition: color 0.2s;
+}
+
+.login-piece:hover { color: #555; }
