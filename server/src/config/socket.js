@@ -14,12 +14,22 @@ export const initSocket = (server) => {
     console.log("Usuario conectado:", socket.id);
 
     // Unirse a sala
-    socket.on("join_room", (room) => {
+    socket.on("join_room", (roomName) => {
 
-      socket.join(room);
+      const room = io.sockets.adapter.rooms.get(roomName);
+      const numClients = room ? room.size : 0;
 
-      console.log(`${socket.id} se unió a ${room}`);
+      if (numClients >= 2) {
+        socket.emit("room_full");
+        return;
+      }
 
+      socket.join(roomName);
+      const assignedColor = numClients === 0 ? "white" : "black";
+
+      socket.emit("player_color", assignedColor);
+
+      console.log(`${socket.id} se unió a ${roomName} como ${assignedColor}`);
     });
 
     // Movimiento
