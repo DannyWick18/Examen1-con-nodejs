@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { socket } from "../socket/socket";
 
 // Importamos tablero inicial
 import { initialBoard } from "../chess/board";
@@ -31,6 +32,45 @@ function Board() {
     // Mensaje de estado (jaque, jaque mate, etc.)
     const [statusMessage, setStatusMessage] =
         useState("");
+
+    // Multijugador por sockets
+    const [room, setRoom] = useState("");
+    const [joined, setJoined] = useState(false);
+    const [playerColor, setPlayerColor] = useState(null);
+
+    useEffect(() => {
+
+        socket.on("receive_move", (data) => {
+
+            if (data.room !== room) return;
+
+            const { board: newBoard, currentTurn, statusMessage, gameOver } = data.move;
+
+            setBoard(newBoard);
+            setCurrentTurn(currentTurn);
+            setStatusMessage(statusMessage || "");
+            setGameOver(gameOver);
+            setSelectedPiece(null);
+            setValidMoves([]);
+        });
+
+        socket.on("player_color", (color) => {
+            setPlayerColor(color);
+            setStatusMessage(`Eres ${color === "white" ? "Blancas" : "Negras"}`);
+        });
+
+        socket.on("room_full", () => {
+            setJoined(false);
+            setStatusMessage("La sala está llena. Usa otra sala.");
+        });
+
+        return () => {
+            socket.off("receive_move");
+            socket.off("player_color");
+            socket.off("room_full");
+        };
+
+    }, [room]);
 
     // Buscamos al rey de un color específico
     function findKing(boardState, color) {
@@ -315,47 +355,63 @@ function Board() {
         const opponent =
             currentTurn === "white" ? "black" : "white";
 
+        let nextStatus = "";
+        let nextGameOver = false;
+
         // Evaluamos estado constantemente si hay o no jaque
         if (isCheckmate(newBoard, opponent)) {
 
             const winner =
                 currentTurn === "white" ? "Blancas" : "Negras";
 
-            setStatusMessage(
-                `¡Jaque mate! Ganan las ${winner}.`
-            );
-            setGameOver(true);
-            return;
-        }
+            nextStatus = `¡Jaque mate! Ganan las ${winner}.`;
+            nextGameOver = true;
 
-        if (isStalemate(newBoard, opponent)) {
+        } else if (isStalemate(newBoard, opponent)) {
 
-            setStatusMessage("¡Ahogado! Empate.");
-            setGameOver(true);
-            return;
-        }
+            nextStatus = "¡Ahogado! Empate.";
+            nextGameOver = true;
 
-        if (isKingInCheck(newBoard, opponent)) {
+        } else if (isKingInCheck(newBoard, opponent)) {
 
             const opponentName =
                 opponent === "white" ? "Blanco" : "Negro";
 
-            setStatusMessage(
-                `¡Jaque al Rey ${opponentName}!`
-            );
-
-        } else {
-
-            setStatusMessage("");
+            nextStatus = `¡Jaque al Rey ${opponentName}!`;
         }
 
-        // Cambiamos el turno
+        setStatusMessage(nextStatus);
+        setGameOver(nextGameOver);
         setCurrentTurn(opponent);
+
+        if (joined && room) {
+            socket.emit("move_piece", {
+                room,
+                move: {
+                    board: newBoard,
+                    currentTurn: opponent,
+                    statusMessage: nextStatus,
+                    gameOver: nextGameOver,
+                },
+            });
+        }
     }
+
+    const joinRoom = () => {
+        if (!room) return;
+
+        socket.emit("join_room", room);
+        setJoined(true);
+        setStatusMessage("Conectando a la sala...");
+    };
 
     // Evento de clicks por casilla
     function handleSquareClick(row, col) {
         if (gameOver) return;
+
+        if (!playerColor) return;
+
+        if (currentTurn !== playerColor) return;
 
         const piece = board[row][col];
 
@@ -421,6 +477,36 @@ function Board() {
         };
 
         return symbols[piece.color][piece.type];
+    }
+
+    if (!joined) {
+        return (
+            <div className="game-container">
+                <h1>Chess Online</h1>
+                <div className="join-room">
+                    <input
+                        placeholder="Nombre de la sala"
+                        value={room}
+                        onChange={(e) => setRoom(e.target.value)}
+                    />
+                    <button onClick={joinRoom}>Entrar a la sala</button>
+                </div>
+                {statusMessage && (
+                    <div className="status-message">{statusMessage}</div>
+                )}
+            </div>
+        );
+    }
+
+    if (!playerColor) {
+        return (
+            <div className="game-container">
+                <h1>Chess Online</h1>
+                <div className="status-message">
+                    Esperando asignación de color...
+                </div>
+            </div>
+        );
     }
 
     // Diseño del tablero
