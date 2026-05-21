@@ -232,6 +232,18 @@ export const initSocket = (server) => {
 
     });
 
-  });
+    // NUEVO - El board ya no se maneja en el front, porque lo se reseataba mal
+    socket.on("reset_game", (room) => {
+    if (!rooms[room]) return;
 
+    rooms[room].board = JSON.parse(JSON.stringify(initialBoard));
+    rooms[room].currentTurn = "white";
+
+    io.to(room).emit("board_state", {
+      board: JSON.parse(JSON.stringify(rooms[room].board)),
+      currentTurn: rooms[room].currentTurn,
+    });
+    console.log(`Partida reiniciada en sala ${room}`);
+    });
+  });
 };

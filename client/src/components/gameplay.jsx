@@ -307,6 +307,14 @@ function Board() {
         setSelectedPiece(null);
         setValidMoves([]);
 
+        // NUEVO (POR SI ACASO, ELIMINAR LUEGO SI NO FUNCIONA)
+        if (
+        !selectedPiece ||
+        !board[selectedPiece.row]?.[selectedPiece.col]
+        ) {
+        console.warn("Movimiento cancelado: pieza inválida");
+        return;
+        }
         try {
             const socket = getSocket();
             const room = localStorage.getItem("room");
@@ -369,6 +377,35 @@ function Board() {
                 if (payload.currentTurn) {
                     setCurrentTurn(payload.currentTurn);
                 }
+                // NUEVO - Detección de jaque, jaque mate y ahogado tras cada movimiento
+                const opponent = payload.currentTurn;
+
+                let nextStatus = "";
+                let nextGameOver = false;
+
+                if (isCheckmate(payload.board, opponent)) {
+
+                const winner =
+                    opponent === "white" ? "Negras" : "Blancas";
+
+                nextStatus = `¡Jaque mate! Ganan las ${winner}.`;
+                nextGameOver = true;
+
+                } else if (isStalemate(payload.board, opponent)) {
+
+                    nextStatus = "¡Ahogado! Empate.";
+                    nextGameOver = true;
+
+                } else if (isKingInCheck(payload.board, opponent)) {
+
+                    const opponentName =
+                    opponent === "white" ? "Blanco" : "Negro";
+
+                    nextStatus = `¡Jaque al Rey ${opponentName}!`;
+                }
+
+                setStatusMessage(nextStatus);
+                setGameOver(nextGameOver);
                 setSelectedPiece(null);
                 setValidMoves([]);
             };
@@ -420,15 +457,20 @@ function Board() {
         setValidMoves(legalMoves);
     }
 
-    // Reinicia la partida si hay jaque mate
-    function resetGame() {
-        setBoard(initialBoard);
-        setSelectedPiece(null);
-        setValidMoves([]);
-        setCurrentTurn("white");
-        setGameOver(false);
-        setStatusMessage("");
-    }
+        // Reinicia la partida si hay jaque mate 
+        // NUEVO - No inicializo board localmente, el servidor enviará el estado inicial al resetear
+        function resetGame() {
+            const socket = getSocket();
+            const room = localStorage.getItem("room");
+
+            if (socket && room) {
+                socket.emit("reset_game", room);
+            }
+            setSelectedPiece(null);
+            setValidMoves([]);
+            setGameOver(false);
+            setStatusMessage("");
+        }
 
     // Piezas de ajedrez en unicode 
     function getPieceSymbol(piece) {
