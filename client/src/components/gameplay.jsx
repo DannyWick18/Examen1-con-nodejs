@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 // Importamos tablero inicial
 import { initialBoard } from "../chess/board";
 
 // Importamos movimientos geométricos
 import { getValidMoves } from "../chess/validMoves";
+import { getSocket } from "../socket/socket";
 
 function Board() {
 
@@ -23,6 +24,11 @@ function Board() {
     // Turno actual
     const [currentTurn, setCurrentTurn] =
         useState("white");
+
+    // Color asignado al jugador por el servidor (white/black/spectator)
+    const [playerColor, setPlayerColor] = useState(
+        localStorage.getItem("playerColor") || null
+    );
 
     // Estado final del juego
     const [gameOver, setGameOver] =
@@ -297,61 +303,84 @@ function Board() {
     // Ejecutamos el movimiento de la piezas
     function movePiece(toRow, toCol) {
 
-        const newBoard = board.map((row) => [...row]);
-
-        // Movemos la pieza a destino
-        newBoard[toRow][toCol] = selectedPiece.piece;
-
-        // Limpiamos la casilla de origen
-        newBoard[selectedPiece.row][selectedPiece.col] = null;
-
-        // Reiniciamos selección y movimientos
+        // Limpiamos selección y movimientos locales
         setSelectedPiece(null);
         setValidMoves([]);
 
-        // Actualizamos el tablero
-        setBoard(newBoard);
-
-        const opponent =
-            currentTurn === "white" ? "black" : "white";
-
-        // Evaluamos estado constantemente si hay o no jaque
-        if (isCheckmate(newBoard, opponent)) {
-
-            const winner =
-                currentTurn === "white" ? "Blancas" : "Negras";
-
-            setStatusMessage(
-                `¡Jaque mate! Ganan las ${winner}.`
-            );
-            setGameOver(true);
-            return;
+        try {
+            const socket = getSocket();
+            const room = localStorage.getItem("room");
+            const playerId = localStorage.getItem("userId");
+            if (socket && room && playerId) {
+                const payload = {
+                    room,
+                    playerId,
+                    playerColor,
+                    fromRow: selectedPiece.row,
+                    fromCol: selectedPiece.col,
+                    toRow,
+                    toCol,
+                };
+                console.log("Emitiendo move_piece:", payload);
+                socket.emit("move_piece", payload);
+            }
+        } catch (e) {
+            console.error("Error emit move_piece:", e);
         }
-
-        if (isStalemate(newBoard, opponent)) {
-
-            setStatusMessage("¡Ahogado! Empate.");
-            setGameOver(true);
-            return;
-        }
-
-        if (isKingInCheck(newBoard, opponent)) {
-
-            const opponentName =
-                opponent === "white" ? "Blanco" : "Negro";
-
-            setStatusMessage(
-                `¡Jaque al Rey ${opponentName}!`
-            );
-
-        } else {
-
-            setStatusMessage("");
-        }
-
-        // Cambiamos el turno
-        setCurrentTurn(opponent);
     }
+
+        // Escuchar movimientos del oponente y asignación de color desde el servidor
+        useEffect(() => {
+            const socket = getSocket();
+            if (!socket) return;
+
+            const handler = (data) => {
+                console.log("receive_move recibido:", data);
+                // El tablero y el turno se gestionan desde board_state (autoridad del servidor).
+                // Este evento se mantiene solo para detección o mensajes futuros.
+                if (data.userId && localStorage.getItem("userId") === String(data.userId)) {
+                    console.log("receive_move: evento propio ignorado", data);
+                }
+            };
+
+            socket.on("receive_move", handler);
+
+            // También actualizar el playerColor si el servidor lo envía nuevamente
+            const colorHandler = (d) => {
+                if (d && d.color) {
+                    setPlayerColor(d.color);
+                    localStorage.setItem("playerColor", d.color);
+                }
+            };
+
+            socket.on("player_color", colorHandler);
+
+            // Escuchar estado de tablero completo desde servidor
+            const boardStateHandler = (payload) => {
+                console.log("board_state recibido:", payload);
+                if (!payload || !Array.isArray(payload.board)) return;
+                const b = payload.board;
+                // Validar dimensiones
+                if (b.length !== 8 || !b.every(row => Array.isArray(row) && row.length === 8)) {
+                    console.warn("board_state: formato inválido", payload);
+                    return;
+                }
+                setBoard(b);
+                if (payload.currentTurn) {
+                    setCurrentTurn(payload.currentTurn);
+                }
+                setSelectedPiece(null);
+                setValidMoves([]);
+            };
+
+            socket.on("board_state", boardStateHandler);
+
+            return () => {
+                socket.off("receive_move", handler);
+                socket.off("player_color", colorHandler);
+                socket.off("board_state", boardStateHandler);
+            };
+        }, []);
 
     // Evento de clicks por casilla
     function handleSquareClick(row, col) {
@@ -377,7 +406,10 @@ function Board() {
             return;
         }
 
-        // Pieza del enemigo la ignoramos
+        // Si el cliente ya tiene un color asignado, sólo puede seleccionar sus piezas
+        if (playerColor && piece.color !== playerColor) return;
+
+        // Además la pieza debe corresponder al turno actual
         if (piece.color !== currentTurn) return;
 
         // Seleccionamos la pieza y calculamos movimientos legales
@@ -451,15 +483,10 @@ function Board() {
             </div>
 
             <div className="board">
-
-                {board.map((row, rowIndex) =>
-
-                    row.map((square, colIndex) => {
-
+                {board.reduce((cells, row, rowIndex) => {
+                    row.forEach((square, colIndex) => {
                         const isValidMove = validMoves.some(
-                            (move) =>
-                                move.row === rowIndex &&
-                                move.col === colIndex
+                            (move) => move.row === rowIndex && move.col === colIndex
                         );
 
                         const isSelected =
@@ -467,17 +494,12 @@ function Board() {
                             selectedPiece.row === rowIndex &&
                             selectedPiece.col === colIndex;
 
-                        const isBlack =
-                            (rowIndex + colIndex) % 2 === 1;
+                        const isBlack = (rowIndex + colIndex) % 2 === 1;
 
-                        // Resaltamos el rey si está en jaque
                         const isKingInCheckSquare =
-                            square &&
-                            square.type === "king" &&
-                            isKingInCheck(board, square.color);
+                            square && square.type === "king" && isKingInCheck(board, square.color);
 
-                        return (
-
+                        cells.push(
                             <div
                                 key={`${rowIndex}-${colIndex}`}
                                 className={[
@@ -489,27 +511,18 @@ function Board() {
                                 ]
                                     .filter(Boolean)
                                     .join(" ")}
-                                onClick={() =>
-                                    handleSquareClick(rowIndex, colIndex)
-                                }
+                                onClick={() => handleSquareClick(rowIndex, colIndex)}
                             >
-                                {/*Numero de filas y columnas*/}
                                 <div className="coordinate">
-                                {
-                                rowIndex === 7 &&
-                                String.fromCharCode(97 + colIndex)
-                                }
-
-                                {
-                                    colIndex === 0 &&
-                                    8 - rowIndex
-                                }
+                                    {rowIndex === 7 && String.fromCharCode(97 + colIndex)}
+                                    {colIndex === 0 && 8 - rowIndex}
                                 </div>
                                 {square && getPieceSymbol(square)}
                             </div>
                         );
-                    })
-                )}
+                    });
+                    return cells;
+                }, [])}
             </div>
         </div>
     );

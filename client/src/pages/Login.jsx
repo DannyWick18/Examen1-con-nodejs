@@ -8,7 +8,8 @@ const Login = ({ onLoginSuccess }) => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
 
-  const API_URL = "http://localhost:3000";
+  // const API_URL = "http://localhost:3000";
+  const API_URL = "http://192.168.40.218:3000";
 
   const handleSubmit = async (e) => {
     e.preventDefault();

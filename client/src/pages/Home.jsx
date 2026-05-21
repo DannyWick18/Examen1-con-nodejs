@@ -1,61 +1,52 @@
 import { useEffect, useState } from "react";
 import { getSocket } from "../socket/socket";
+import Board from "../components/gameplay";
 
-function Home() {
+function Home({ onLogout }) {
 
-  const [room, setRoom] = useState("");
+  const [room, setRoom] = useState(localStorage.getItem("room") || "");
   const [joined, setJoined] = useState(false);
-
-  const [message, setMessage] = useState("");
-  const [messages, setMessages] = useState([]);
+  const [playerColor, setPlayerColor] = useState(localStorage.getItem("playerColor") || null);
 
   useEffect(() => {
-
     const socket = getSocket();
+    const storedRoom = localStorage.getItem("room");
+    if (socket && storedRoom) {
+      setRoom(storedRoom);
+      socket.emit("join_room", storedRoom);
+    }
+
     if (!socket) return;
 
-    socket.on("receive_move", (data) => {
-
-      setMessages((prev) => [...prev, data.message]);
-
-    });
-
-    return () => {
-
-      socket.off("receive_move");
-
+    // Actualizar playerColor si el servidor lo emite en cualquier momento
+    const colorHandler = (data) => {
+      if (data && data.color) {
+        localStorage.setItem("playerColor", data.color);
+        setPlayerColor(data.color);
+        // Only mark as joined when color assigned
+        setJoined(true);
+      }
     };
 
+    socket.on("player_color", colorHandler);
+
+    return () => {
+      socket.off("player_color", colorHandler);
+    };
   }, []);
 
   const joinRoom = () => {
-
-    if (!room) return;
+    const trimmedRoom = room.trim();
+    if (!trimmedRoom) return;
 
     const socket = getSocket();
-    socket.emit("join_room", room);
+    socket.emit("join_room", trimmedRoom);
 
-    setJoined(true);
+    // Guardamos la sala para que Board lo use
+    localStorage.setItem("room", trimmedRoom);
 
-  };
-
-  const sendMessage = () => {
-
-    const userId = localStorage.getItem('userId');
-    const socket = getSocket();
-
-    const data = {
-      room,
-      message,
-      playerId: userId,
-    };
-
-    socket.emit("move_piece", data);
-
-    setMessages((prev) => [...prev, message]);
-
-    setMessage("");
-
+    // No forzamos setJoined here; esperamos al event `player_color` para asegurarnos de la asignación
+    // En caso de que el servidor ya haya asignado color (reconexión), el handler lo procesará
   };
 
   return (
@@ -68,32 +59,25 @@ function Home() {
         <>
           <input
             placeholder="Sala"
+            value={room}
             onChange={(e) => setRoom(e.target.value)}
           />
 
           <button onClick={joinRoom}>
-            Entrar
+            Entrar a sala
+          </button>
+          <button onClick={onLogout} style={{ marginLeft: 10 }}>
+            Salir
           </button>
         </>
       ) : (
         <>
-          <h2>Sala: {room}</h2>
-
-          <input
-            placeholder="Movimiento"
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
-          />
-
-          <button onClick={sendMessage}>
-            Enviar
+          <h2>Sala: {localStorage.getItem('room')}</h2>
+          <h3>Tu color: {playerColor}</h3>
+          <Board />
+          <button onClick={onLogout} style={{ marginTop: 20 }}>
+            Salir
           </button>
-
-          <div>
-            {messages.map((msg, index) => (
-              <p key={index}>{msg}</p>
-            ))}
-          </div>
         </>
       )}
 
