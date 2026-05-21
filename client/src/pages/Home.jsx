@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { socket } from "../socket/socket";
+import { getSocket } from "../socket/socket";
 
 function Home() {
 
@@ -10,6 +10,9 @@ function Home() {
   const [messages, setMessages] = useState([]);
 
   useEffect(() => {
+
+    const socket = getSocket();
+    if (!socket) return;
 
     socket.on("receive_move", (data) => {
 
@@ -29,6 +32,7 @@ function Home() {
 
     if (!room) return;
 
+    const socket = getSocket();
     socket.emit("join_room", room);
 
     setJoined(true);
@@ -37,9 +41,13 @@ function Home() {
 
   const sendMessage = () => {
 
+    const userId = localStorage.getItem('userId');
+    const socket = getSocket();
+
     const data = {
       room,
       message,
+      playerId: userId,
     };
 
     socket.emit("move_piece", data);
@@ -54,6 +62,7 @@ function Home() {
     <div style={{ padding: 20 }}>
 
       <h1>Chess Online</h1>
+      <p>Usuario: {localStorage.getItem('email')}</p>
 
       {!joined ? (
         <>

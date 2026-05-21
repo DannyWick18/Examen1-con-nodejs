@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import './Login.css';
+import { initSocket } from '../socket/socket';
 
 const Login = ({ onLoginSuccess }) => {
   const [isLoginTab, setIsLoginTab] = useState(true);
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
   const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [error, setError] = useState('');
 
   const API_URL = "http://localhost:3000";
@@ -21,7 +21,7 @@ const Login = ({ onLoginSuccess }) => {
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ username, password }),
+          body: JSON.stringify({ email, password }),
         });
 
         const data = await response.json();
@@ -30,6 +30,14 @@ const Login = ({ onLoginSuccess }) => {
           setError(data.error || 'Error al iniciar sesión. Verifica tus datos.');
           return;
         }
+
+        // Guardar token y datos del usuario
+        localStorage.setItem('authToken', data.token);
+        localStorage.setItem('userId', data.user.id);
+        localStorage.setItem('email', data.user.email);
+
+        // Inicializar socket con el token
+        initSocket(data.token);
 
         onLoginSuccess();
       } catch (fetchError) {
@@ -43,7 +51,7 @@ const Login = ({ onLoginSuccess }) => {
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ username, email, password }),
+          body: JSON.stringify({ email, password }),
         });
 
         const data = await response.json();
@@ -98,30 +106,16 @@ const Login = ({ onLoginSuccess }) => {
         {/* Formulario */}
         <form onSubmit={handleSubmit}>
           <div className="login-field">
-            <label className="login-label">USUARIO</label>
+            <label className="login-label">CORREO ELECTRÓNICO</label>
             <input 
-              type="text" 
+              type="email" 
               className="login-input"
-              placeholder="Tu nombre de usuario" 
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
+              placeholder="ejemplo@correo.com" 
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               required 
             />
           </div>
-
-          {!isLoginTab && (
-            <div className="login-field">
-              <label className="login-label">CORREO ELECTRÓNICO</label>
-              <input 
-                type="email" 
-                className="login-input"
-                placeholder="ejemplo@correo.com" 
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required 
-              />
-            </div>
-          )}
 
           <div className="login-field">
             <label className="login-label">CONTRASEÑA</label>
