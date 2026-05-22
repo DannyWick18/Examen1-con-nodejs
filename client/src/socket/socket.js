@@ -12,17 +12,11 @@ export const initSocket = (token) => {
     socket = null;
   }
 
-  socket = io("http://localhost:3000", {
+  socket = io(import.meta.env.VITE_SOCKET_URL || `http://${window.location.hostname}:3000`, {
     auth: {
       token: token,
     },
   });
-
-  /*socket = io("http://192.168.40.218:3000", {
-    auth: {
-      token: token,
-    },
-  });*/
   
   socket.on("connect_error", (error) => {
     console.error("Socket connect_error:", error);

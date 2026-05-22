@@ -4,8 +4,8 @@ import Board from "../components/gameplay";
 import "./Home.css"; // CSS DE HOME
 
 function Home({ onLogout }) {
+  const API_URL = import.meta.env.VITE_API_URL || `http://${window.location.hostname}:3000`;
 
-  
   const [room, setRoom] = useState(localStorage.getItem("room") || "");
   const [joined, setJoined] = useState(false);
   const [playerColor, setPlayerColor] = useState(localStorage.getItem("playerColor") || null);
@@ -15,12 +15,12 @@ function Home({ onLogout }) {
     const userId = localStorage.getItem("userId");
     if (!userId) return;
 
-    fetch(`http://localhost:3000/api/ranking/${userId}`)
+    fetch(`${API_URL}/api/ranking/${userId}`)
         .then((res) => res.json())
         .then((data) => setRanking(data))
         .catch((err) => console.error("Error ranking:", err));
 
-    fetch(`http://localhost:3000/api/games/history/${userId}`)
+    fetch(`${API_URL}/api/games/history/${userId}`)
         .then((res) => res.json())
         .then((data) => setHistoryGames(data))
         .catch((err) => console.error("Error historial:", err));

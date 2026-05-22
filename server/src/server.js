@@ -6,9 +6,10 @@ const server = http.createServer(app);
 
 initSocket(server);
 
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
+const HOST = process.env.HOST || "0.0.0.0";
 
-server.listen(PORT, () => {
+server.listen(PORT, HOST, () => {
 
   console.log(`Servidor corriendo en puerto ${PORT}`);
 
