@@ -362,6 +362,12 @@ function Board() {
             };
 
             socket.on("player_color", colorHandler);
+            
+            // NUEVO PARA BD (GUARDAR IDs)
+            socket.on("players_info", (data) => {
+                if (data.whiteId) localStorage.setItem("whiteId", data.whiteId);
+                if (data.blackId) localStorage.setItem("blackId", data.blackId);
+            });
 
             // Escuchar estado de tablero completo desde servidor
             const boardStateHandler = (payload) => {
@@ -385,11 +391,20 @@ function Board() {
 
                 if (isCheckmate(payload.board, opponent)) {
 
-                const winner =
-                    opponent === "white" ? "Negras" : "Blancas";
-
+                const winner = opponent === "white" ? "Negras" : "Blancas";
                 nextStatus = `¡Jaque mate! Ganan las ${winner}.`;
                 nextGameOver = true;
+                
+                // NUEVO DB
+                const socket = getSocket();
+                const room = localStorage.getItem("room");
+                const winnerId = opponent === "white"
+                    ? localStorage.getItem("blackId")   // ganó negro
+                    : localStorage.getItem("userId");    // ganó blanco (tú)
+
+                if (socket && room && winnerId) {
+                    socket.emit("game_over", { room, winnerId });
+                }
 
                 } else if (isStalemate(payload.board, opponent)) {
 

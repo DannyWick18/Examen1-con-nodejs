@@ -10,6 +10,22 @@ function Home({ onLogout }) {
   const [joined, setJoined] = useState(false);
   const [playerColor, setPlayerColor] = useState(localStorage.getItem("playerColor") || null);
 
+  // NUEVO USEREFFECT - DB PARA RANKING E HISTORIAL
+  useEffect(() => {
+    const userId = localStorage.getItem("userId");
+    if (!userId) return;
+
+    fetch(`http://localhost:3000/api/ranking/${userId}`)
+        .then((res) => res.json())
+        .then((data) => setRanking(data))
+        .catch((err) => console.error("Error ranking:", err));
+
+    fetch(`http://localhost:3000/api/games/history/${userId}`)
+        .then((res) => res.json())
+        .then((data) => setHistoryGames(data))
+        .catch((err) => console.error("Error historial:", err));
+  }, []);
+  
   useEffect(() => {
     const socket = getSocket();
     const storedRoom = localStorage.getItem("room");
@@ -47,8 +63,9 @@ function Home({ onLogout }) {
   // UI y datos 
   const username = localStorage.getItem("email") || "Usuario";
 
-  const [ranking] = useState({ points: 0, wins: 0, losses: 0, draws: 0 });
-  const [historyGames] = useState([]);
+  // CAMBIO
+  const [ranking, setRanking] = useState({ points: 0, wins: 0, losses: 0, draws: 0 });
+  const [historyGames, setHistoryGames] = useState([]);
 
   // RENDER DE AMBOS LADOS
   return (

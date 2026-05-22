@@ -1,4 +1,5 @@
 import { Server } from "socket.io";
+import { createGame, saveMove, finishGame } from "../models/gameModel.js";
 import jwt from "jsonwebtoken";
 
 const initialBoard = [
@@ -68,7 +69,8 @@ export const initSocket = (server) => {
     const rooms = io.roomsMap;
 
     // Unirse a sala
-    socket.on("join_room", (room) => {
+    // CAMBIO async
+    socket.on("join_room", async (room) => {
 
       // Usamos el userId del token (login) para asignar colores
       const userId = socket.userId;
@@ -112,12 +114,22 @@ export const initSocket = (server) => {
 
         rooms[room].colors[userId] = color;
       }
+      // NUEVO - DB
+      if (playersCount === 2) {
+        const [whiteId, blackId] = rooms[room].players;
+        const gameId = await createGame(whiteId, blackId);
+        rooms[room].gameId = gameId;
+      }
 
       console.log(`${userId} (socket ${socket.id}) se unió a ${room} como ${color}`);
 
       // Informamos al cliente su color
       socket.emit("player_color", { color });
-
+      // NUEVO - DB
+      socket.emit("players_info", {
+        whiteId: rooms[room].players[0],
+        blackId: rooms[room].players[1]
+      });
       // Informamos el conteo de jugadores en la sala (útil para UI)
       io.to(room).emit("room_info", { players: playersCount });
 
@@ -130,7 +142,8 @@ export const initSocket = (server) => {
     });
 
     // Movimiento
-    socket.on("move_piece", (data) => {
+    // NUEVO ASYNC
+    socket.on("move_piece", async (data) => {
 
       // Validar que el usuario sea el que está haciendo el movimiento
       if (!data.playerId || String(data.playerId) !== String(socket.userId)) {
@@ -184,6 +197,19 @@ export const initSocket = (server) => {
       // Aplicar movimiento en el servidor
       roomBoard[tr][tc] = piece;
       roomBoard[fr][fc] = null;
+
+      // NUEVO - Guardar movimiento en DB
+      if (rooms[room].gameId) {
+        const fromSquare = `${fr},${fc}`;
+        const toSquare   = `${tr},${tc}`;
+        await saveMove(
+          rooms[room].gameId,
+          userId,
+          fromSquare,
+          toSquare,
+          piece.type
+        );
+      }
 
       // Cambiar el turno en el servidor
       rooms[room].currentTurn = rooms[room].currentTurn === "white" ? "black" : "white";
@@ -245,5 +271,15 @@ export const initSocket = (server) => {
     });
     console.log(`Partida reiniciada en sala ${room}`);
     });
+    
+    // NUEVO -DB
+    socket.on("game_over", async (data) => {
+        const { room, winnerId } = data;
+        if (rooms[room]?.gameId) {
+            await finishGame(rooms[room].gameId, winnerId);
+            rooms[room].gameId = null;
+        }
+    });
   });
+
 };
