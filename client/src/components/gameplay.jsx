@@ -400,8 +400,8 @@ function Board() {
                 const room = localStorage.getItem("room");
                 const winnerId = opponent === "white"
                     ? localStorage.getItem("blackId")   // ganó negro
-                    : localStorage.getItem("userId");    // ganó blanco (tú)
-
+                    : localStorage.getItem("whiteId");    // ganó blanco
+                    // CAMBIO
                 if (socket && room && winnerId) {
                     socket.emit("game_over", { room, winnerId });
                 }

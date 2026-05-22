@@ -125,11 +125,20 @@ export const initSocket = (server) => {
 
       // Informamos al cliente su color
       socket.emit("player_color", { color });
+      
       // NUEVO - DB
-      socket.emit("players_info", {
+      if (rooms[room].players.length === 2) {
+          io.to(room).emit("players_info", {
+          whiteId: rooms[room].players[0],
+          blackId: rooms[room].players[1]
+        });
+      }
+
+      /*socket.emit("players_info", {
         whiteId: rooms[room].players[0],
         blackId: rooms[room].players[1]
-      });
+      });*/
+      
       // Informamos el conteo de jugadores en la sala (útil para UI)
       io.to(room).emit("room_info", { players: playersCount });
 
@@ -262,6 +271,9 @@ export const initSocket = (server) => {
     socket.on("reset_game", (room) => {
     if (!rooms[room]) return;
 
+    // NUEVO
+    rooms[room].gameEnded = false;
+
     rooms[room].board = JSON.parse(JSON.stringify(initialBoard));
     rooms[room].currentTurn = "white";
 
@@ -275,6 +287,11 @@ export const initSocket = (server) => {
     // NUEVO -DB
     socket.on("game_over", async (data) => {
         const { room, winnerId } = data;
+        // NUEVO
+        if (rooms[room]?.gameEnded) {
+          return;
+        }
+        rooms[room].gameEnded = true;
         if (rooms[room]?.gameId) {
             await finishGame(rooms[room].gameId, winnerId);
             rooms[room].gameId = null;

@@ -46,8 +46,8 @@ export async function finishGame(gameId, winnerId) {
     const loserId = String(winnerId) === String(white_player_id)
         ? black_player_id
         : white_player_id;
-
     // Ganador: +3 puntos y +1 victoria
+    console.log("ACTUALIZANDO RANKING", winnerId, loserId);
     await pool.query(
         `INSERT INTO rankings (user_id, points, wins)
              VALUES (?, 3, 1)
