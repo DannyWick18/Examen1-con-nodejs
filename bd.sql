@@ -6,7 +6,7 @@ USE chess_game;
 CREATE TABLE users (
     id INT PRIMARY KEY AUTO_INCREMENT,
 
-    username VARCHAR(50) NOT NULL UNIQUE,
+    -- username VARCHAR(50) NOT NULL UNIQUE,
 
     email VARCHAR(100) NOT NULL UNIQUE,
 

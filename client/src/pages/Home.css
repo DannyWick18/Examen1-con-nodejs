@@ -1,0 +1,188 @@
+.home-shell {
+    display: flex;
+    width: 100%;
+    min-height: 100vh;
+    background: #181818;
+    color: white;
+    overflow: hidden;
+}
+
+/* IZQUIERDA */
+.home-left {
+    flex: 1;
+
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+
+    padding: 20px;
+    overflow: auto;
+}
+
+/* DERECHA */
+.home-right {
+    width: 340px;
+    min-width: 340px;
+
+    background: #111;
+    border-left: 2px solid #333;
+
+    display: flex;
+    flex-direction: column;
+
+    padding: 20px;
+    box-sizing: border-box;
+
+    overflow-y: auto;
+}
+
+/* TITULOS */
+.home-right-title h2 {
+    margin: 0;
+    margin-bottom: 15px;
+
+    font-family: 'Cinzel', serif;
+    color: #dfb76c;
+}
+
+/* FORMULARIO */
+.home-form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+
+    width: 100%;
+    max-width: 420px;
+}
+
+.home-label {
+    font-size: 14px;
+    margin-bottom: 5px;
+
+    color: #ccc;
+    font-family: 'Cinzel', serif;
+}
+
+.home-input {
+    padding: 12px;
+
+    border-radius: 8px;
+    border: 1px solid #444;
+
+    background: #222;
+    color: white;
+
+    outline: none;
+}
+
+/* BOTONES */
+.home-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.home-btn {
+    padding: 12px 18px;
+
+    border: none;
+    border-radius: 8px;
+
+    background: #2e2e2e;
+    color: white;
+
+    cursor: pointer;
+
+    transition: 0.2s;
+}
+
+.home-btn:hover {
+    background: #444;
+}
+
+.home-btn.primary {
+    background: #dfb76c;
+    color: black;
+}
+
+.home-btn.primary:hover {
+    background: #f1cc87;
+}
+
+/* STATUS */
+.home-status {
+    margin-bottom: 15px;
+
+    font-size: 16px;
+    font-weight: bold;
+
+    font-family: 'Cinzel', serif;
+}
+
+/* PILLS */
+.home-mini-row {
+    display: flex;
+    gap: 10px;
+
+    margin-top: 10px;
+    margin-bottom: 20px;
+}
+
+.home-pill {
+    flex: 1;
+
+    background: #222;
+    border-radius: 10px;
+
+    padding: 10px;
+    text-align: center;
+}
+
+.home-pill .k {
+    font-size: 11px;
+    color: #aaa;
+}
+
+.home-pill .v {
+    margin-top: 5px;
+
+    font-size: 18px;
+    font-weight: bold;
+
+    color: #dfb76c;
+}
+
+/* HISTORIAL */
+.home-history {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.home-card {
+    background: #1d1d1d;
+
+    border: 1px solid #333;
+    border-radius: 10px;
+
+    padding: 12px;
+}
+
+.meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.idx {
+    font-weight: bold;
+}
+
+.tag {
+    padding: 4px 8px;
+
+    border-radius: 5px;
+
+    font-size: 11px;
+    color: white;
+}
